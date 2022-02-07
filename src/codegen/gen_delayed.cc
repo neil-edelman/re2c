@@ -143,18 +143,19 @@ static void gen_cond_enum(Scratchbuf &buf, code_alc_t &alc, Code *code, const op
         CodeList *block = code_list(alc);
 
         if (opts->lang == LANG_C) {
-            start = buf.cstr("enum ").str(opts->yycondtype).cstr(" {").flush();
-            end = "};";
+            start = buf.cstr("#define RE2C_").str(opts->yycondtype).cstr(" ").flush();
             for (size_t i = 0; i < conds.size(); ++i) {
-                buf.str(conds[i].name);
-                if (opts->loop_switch) {
-                    buf.cstr(" = ").u32(conds[i].number);
-                }
+                buf.cstr("X(").str(conds[i].name).cstr(")");
                 if (i + 1 < conds.size()) { // do not append comma after the last one
-                    buf.cstr(",");
+                    buf.cstr(", \\");
                 }
                 append(block, code_text(alc, buf.flush()));
             }
+            buf.cstr("#define X(n) n").flush();
+            buf.cstr("enum ").str(opts->yycondtype).cstr(" {").flush();
+            buf.cstr("RE2C_").str(opts->yycondtype).flush();
+            append(block, code_text(alc, buf.flush()));
+            end = "};";
         } else if (opts->lang == LANG_GO) {
             start = buf.cstr("const (").flush();
             end = ")";
